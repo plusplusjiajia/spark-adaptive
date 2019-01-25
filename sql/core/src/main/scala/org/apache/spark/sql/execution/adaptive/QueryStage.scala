@@ -105,9 +105,7 @@ abstract class QueryStage extends UnaryExecNode {
     OptimizeJoin(conf).apply(this)
     HandleSkewedJoin(conf).apply(this)
     // If the Joins are changed, we need apply EnsureRequirements rule to add BroadcastExchange.
-    var childChanged = false
     if (!oldChild.fastEquals(child)) {
-      childChanged = true
       child = EnsureRequirements(conf).apply(child)
     }
 
@@ -127,6 +125,10 @@ abstract class QueryStage extends UnaryExecNode {
         }
     }
 
+    val leafNodes = child.collect {
+      case s: SparkPlan if s.children.isEmpty => s
+    }
+
     if (childMapOutputStatistics.length > 0 && supportAdaptive) {
       val exchangeCoordinator = new ExchangeCoordinator(
         conf.targetPostShuffleInputSize,
@@ -143,7 +145,7 @@ abstract class QueryStage extends UnaryExecNode {
           i.partitionStartIndices = Some(partitionStartIndices)
           i.partitionEndIndices = Some(partitionEndIndices)
         }
-      } else if (!childChanged) {
+      } else if (childMapOutputStatistics.length == leafNodes.length) {
         val partitionStartIndices =
           exchangeCoordinator.estimatePartitionStartIndices(childMapOutputStatistics)
         queryStageInputs.foreach(_.partitionStartIndices = Some(partitionStartIndices))
