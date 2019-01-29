@@ -313,7 +313,7 @@ class QueryStageSuite extends SparkFunSuite with BeforeAndAfterAll {
         join,
         expectedAnswer.collect())
 
-      // During execution, no SortMergeJoin is changed to BroadcastHashJoin
+      // During execution, one SortMergeJoin is changed to BroadcastHashJoin
       val numSmjAfterExecution = join.queryExecution.executedPlan.collect {
         case smj: SortMergeJoinExec => smj
       }.length
