@@ -47,6 +47,7 @@ abstract class QueryStageInput extends LeafExecNode {
     e => e.transform {
       case attr: Attribute => originalAttrToNewAttr.getOrElse(attr, attr)
     }
+    e.canonicalized
   }
 
   override def outputPartitioning: Partitioning = {
