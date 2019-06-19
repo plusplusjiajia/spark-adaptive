@@ -45,9 +45,9 @@ abstract class QueryStageInput extends LeafExecNode {
   private lazy val updateAttr: Expression => Expression = {
     val originalAttrToNewAttr = AttributeMap(childStage.output.zip(output))
     e => e.transform {
-      case attr: Attribute => originalAttrToNewAttr.getOrElse(attr, attr)
+      case attr: Attribute =>
+        originalAttrToNewAttr.getOrElse(attr, attr).withQualifier(attr.qualifier)
     }
-    e.canonicalized
   }
 
   override def outputPartitioning: Partitioning = childStage.outputPartitioning match {
